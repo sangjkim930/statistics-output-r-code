@@ -1,0 +1,34 @@
+# Load the built-in mtcars dataset
+data(mtcars)
+
+# Specify the variables of interest (modify this vector as needed)
+vars <- c("mpg", "wt", "hp", "cyl")
+
+#vars <- colnames(mtcars)  # Use all variables; or e.g., c("mpg", "wt", "hp", "cyl")
+
+# Calculate descriptive statistics for each variable:
+# Count (non-missing values), Mean, Standard Deviation (SD), Minimum, and Maximum.
+descriptive_stats <- sapply(vars, function(var) {
+  x <- mtcars[[var]]
+  n     <- sum(!is.na(x))
+  meanx <- mean(x, na.rm = TRUE)
+  sdx   <- sd(x, na.rm = TRUE)
+  minx  <- min(x, na.rm = TRUE)
+  maxx  <- max(x, na.rm = TRUE)
+  c(Count = n, Mean = meanx, SD = sdx, Min = minx, Max = maxx)
+})
+
+# Transpose the result so that each variable becomes a row
+desc_df <- as.data.frame(t(descriptive_stats))
+
+# Format numeric values: count stays as integer, and other values are formatted to 4 decimal places.
+desc_df$Mean <- sprintf("%.4f", desc_df$Mean)
+desc_df$SD   <- sprintf("%.4f", desc_df$SD)
+desc_df$Min  <- sprintf("%.4f", desc_df$Min)
+desc_df$Max  <- sprintf("%.4f", desc_df$Max)
+
+# Print the descriptive statistics table
+print(desc_df)
+
+# Export the table to a CSV file
+write.csv(desc_df, file = "mtcars_descriptive_statistics.csv", row.names = TRUE, quote = FALSE)
