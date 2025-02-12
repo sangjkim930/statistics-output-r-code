@@ -1,0 +1,38 @@
+# Install required packages if not already installed
+if (!require("fixest")) install.packages("fixest")
+if (!require("modelsummary")) install.packages("modelsummary")
+
+# Load necessary libraries
+library(fixest)
+library(modelsummary)
+
+# Use the built-in mtcars dataset
+data(mtcars)
+
+# Save regression formulas in a list
+reg_formulas <- list(
+  "Model 1" = "mpg ~ wt + hp",                        # Model 1: mpg explained by weight (wt) and horsepower (hp)
+  "Model 2" = "mpg ~ wt + hp + factor(cyl)",            # Model 2: add cylinders (cyl) as a factor variable
+  "Model 3" = "mpg ~ wt + hp + factor(cyl) + factor(am)"  # Model 3: further add transmission (am) as a factor variable
+)
+
+# Execute each regression formula stored in the list using lapply.
+# Robust (heteroskedasticity-consistent) standard errors are used.
+models <- lapply(reg_formulas, function(formula_str) {
+  feols(as.formula(formula_str), data = mtcars, vcov = "hetero")
+})
+
+# Define star levels for significance (* 0.10, ** 0.05, *** 0.01)
+star_levels <- c(`*` = 0.10, `**` = 0.05, `***` = 0.01)
+
+# Export the regression results to a CSV file using modelsummary.
+# Using a single numeric value for 'fmt' (e.g., 4) applies four decimal places to all numbers.
+modelsummary(
+  models,
+  output = "table_mtcars.csv",
+  stars = star_levels,
+  statistic = "({std.error})",  # Displays robust standard errors in parentheses
+##statistic = "({statistic})",  # t-statistics are shown in parentheses
+##statistic = "({p.value})",  # Displays p-values in parentheses
+  fmt = 4                     # Use 4 decimal places for all numeric values
+)
