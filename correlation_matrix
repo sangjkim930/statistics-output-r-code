@@ -1,0 +1,45 @@
+# Load the required package
+if (!require("Hmisc")) install.packages("Hmisc")
+library(Hmisc)
+
+# Specify the variables of interest (modify this vector as needed)
+vars <- c("mpg", "wt", "hp", "cyl")  # Example: mpg, weight, horsepower, and cylinders
+
+# Subset the data and compute the correlation matrix along with p-values
+res <- rcorr(as.matrix(mtcars[, vars]))
+r <- res$r
+p <- res$P
+
+# Define a formatting function that appends significance stars:
+# - p < 0.01: '***'
+# - p < 0.05: '**'
+# - p < 0.10: '*'
+# For NA p-values, no stars are appended.
+fmt_val <- function(r_val, p_val) {
+  stars <- ""
+  if (!is.na(p_val)) {
+    if (p_val < 0.01) {
+      stars <- "***"
+    } else if (p_val < 0.05) {
+      stars <- "**"
+    } else if (p_val < 0.10) {
+      stars <- "*"
+    }
+  }
+  paste0(formatC(r_val, format = "f", digits = 2, width = 8), stars)
+}
+
+# Create a formatted correlation matrix using mapply
+formatted <- matrix(mapply(fmt_val, as.vector(r), as.vector(p)),
+                    nrow = nrow(r), ncol = ncol(r))
+rownames(formatted) <- rownames(r)
+colnames(formatted) <- colnames(r)
+
+# Remove the upper triangle: set values above the diagonal to an empty string
+formatted[upper.tri(formatted)] <- ""
+
+# Print the formatted correlation matrix to the console
+print(formatted)
+
+# Save the formatted matrix to a CSV file
+write.csv(formatted, file = "corr_matrix_lower_triangle.csv", row.names = TRUE, quote = FALSE)
